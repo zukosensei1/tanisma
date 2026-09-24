@@ -64,12 +64,12 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-      const yesBtn         = document.getElementById('yes-btn');
-      const noBtn          = document.getElementById('no-btn');
-      const heartsContainer= document.getElementById('hearts-container');
-      const mainContent    = document.getElementById('main-content');
-      const interestForm   = document.getElementById('interest-form');
-      const userForm       = document.getElementById('user-form');
+      const yesBtn          = document.getElementById('yes-btn');
+      const noBtn           = document.getElementById('no-btn');
+      const heartsContainer = document.getElementById('hearts-container');
+      const mainContent     = document.getElementById('main-content');
+      const interestForm    = document.getElementById('interest-form');
+      const userForm        = document.getElementById('user-form');
 
       const noResponses = [
         'Emin misin?',
@@ -101,13 +101,13 @@
       // Masaüstü: hover ile kaçar
       noBtn.addEventListener('mouseenter', handleNoButtonHover);
 
-      // Mobil: hover yok, dokunma ile kaçar
+      // Mobil: dokunma ile kaçar
       noBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         handleNoButtonHover();
       }, { passive: false });
 
-      // Klavye / diğer durumlar
+      // Klavye / diğer
       noBtn.addEventListener('click', (e) => {
         e.preventDefault();
         handleNoButtonHover();
@@ -156,7 +156,9 @@
         startHeartAnimation();
 
         // Telegram'a "Evet dedi" bildirimi
-        notifyTelegram('evet');
+        const data = new FormData();
+        data.append('tip', 'evet');
+        fetch('kaydet.php', { method: 'POST', body: data }).catch(() => {});
 
         setTimeout(() => {
           interestForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -199,13 +201,6 @@
         }, delay);
       }
 
-      /* ---------- TELEGRAM BİLDİRİMİ (Evet tıklaması) ---------- */
-      function notifyTelegram(tip) {
-        const data = new FormData();
-        data.append('tip', tip);
-        fetch('kaydet.php', { method: 'POST', body: data }).catch(() => {});
-      }
-
       /* ---------- FORM GÖNDERİMİ ---------- */
       function handleFormSubmit(e) {
         e.preventDefault();
@@ -223,7 +218,6 @@
             return res.text();
           })
           .then((response) => {
-            // Telegram hatası varsa kullanıcıya göster
             if (response.trim() !== 'ok') {
               alert("Telegram Hatası: " + response);
               throw new Error(response);
