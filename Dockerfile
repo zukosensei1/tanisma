@@ -1,11 +1,10 @@
 FROM php:8.2-apache
 
-# gerekli eklentiler
-RUN apt-get update && apt-get install -y \
-    curl \
-    && docker-php-ext-install curl
+# Gerekli sistem paketleri (curl zaten imajda var, ekstra kurmaya gerek yok)
+RUN apt-get update && apt-get install -y libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# dosyaları sunucuya kopyala
+# Dosyaları sunucuya kopyala
 COPY . /var/www/html/
 
 # Apache'yi başlat
