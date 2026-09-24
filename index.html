@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Tanışma teklifi sayfası">
+  <meta name="theme-color" content="#ff69b4">
+  <title>Tanışalım mı?</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="main-content">
+    <h1 id="main-title">Tanışalım mı? <span aria-hidden="true">😊</span></h1>
+    <div class="buttons-container">
+      <button id="yes-btn" class="btn btn--success" aria-label="Evet, tanışalım">Evet</button>
+      <button id="no-btn" class="btn btn--danger" aria-label="Hayır, tanışmayalım">Hayır</button>
+    </div>
+  </main>
+
+  <div class="form-container" id="interest-form">
+    <h2 class="form-title">Bunları doldurup bana gönder!</h2>
+    <form id="user-form" action="" method="POST" novalidate>
+      <div class="form-group">
+        <label for="name" class="form-label">Adın</label>
+        <input type="text" id="name" name="isim" class="form-input"
+               placeholder="İsmini yaz" autocomplete="given-name"
+               enterkeyhint="next" maxlength="60" required>
+      </div>
+
+      <div class="form-group">
+        <label for="hobbies" class="form-label">Hobilerin</label>
+        <input type="text" id="hobbies" name="hobiler" class="form-input"
+               placeholder="Neler yapmaktan hoşlanırsın?" autocomplete="off"
+               enterkeyhint="next" maxlength="150" required>
+      </div>
+
+      <div class="form-group">
+        <label for="color" class="form-label">En sevdiğin renk</label>
+        <input type="text" id="color" name="renkler" class="form-input"
+               placeholder="Hangi rengi seversin?" autocomplete="off"
+               enterkeyhint="next" maxlength="40">
+      </div>
+
+      <div class="form-group">
+        <label for="book" class="form-label">En sevdiğin kitap</label>
+        <input type="text" id="book" name="kitaplar" class="form-input"
+               placeholder="Favori kitabın nedir?" autocomplete="off"
+               enterkeyhint="next" maxlength="80">
+      </div>
+
+      <div class="form-group">
+        <label for="movie" class="form-label">En sevdiğin film</label>
+        <input type="text" id="movie" name="filmler" class="form-input"
+               placeholder="Favori filmin nedir?" autocomplete="off"
+               enterkeyhint="send" maxlength="80">
+      </div>
+
+      <button type="submit" class="submit-btn">Gönder</button>
+    </form>
+  </div>
+
+  <div class="hearts-container" id="hearts-container" aria-hidden="true"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      const yesBtn         = document.getElementById('yes-btn');
+      const noBtn          = document.getElementById('no-btn');
+      const heartsContainer= document.getElementById('hearts-container');
+      const mainContent    = document.getElementById('main-content');
+      const interestForm   = document.getElementById('interest-form');
+      const userForm       = document.getElementById('user-form');
+
+      const noResponses = [
+        'Emin misin?',
+        'Gerçekten hayır mı?',
+        'Bak pişman olursun ha...',
+        'Şaka yapıyorsun değil mi?',
+        'Son kararın mı?',
+        'Yapma be güzelim',
+        'Lütfen? 🥺',
+        'Hadi Karı 😡'
+      ];
+
+      const heartColors = ['❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍'];
+
+      let noClickCount   = 0;
+      let isSuccessState = false;
+      let heartInterval  = null;
+      const totalHearts  = 40;
+
+      // HTML kaçış fonksiyonu
+      const esc = (s) => String(s).replace(/[&<>"']/g, c => (
+        { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+      ));
+
+      /* ---------- OLAY DİNLEYİCİLERİ ---------- */
+      yesBtn.addEventListener('click', handleYesButtonClick);
+      userForm.addEventListener('submit', handleFormSubmit);
+
+      // Masaüstü: hover ile kaçar
+      noBtn.addEventListener('mouseenter', handleNoButtonHover);
+
+      // Mobil: hover yok, dokunma ile kaçar
+      noBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleNoButtonHover();
+      }, { passive: false });
+
+      // Klavye / diğer durumlar
+      noBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleNoButtonHover();
+      });
+
+      /* ---------- HAYIR BUTONU ---------- */
+      function handleNoButtonHover() {
+        if (isSuccessState) return;
+
+        noClickCount++;
+
+        const responseIndex = Math.min(noClickCount - 1, noResponses.length - 1);
+        noBtn.textContent = noResponses[responseIndex];
+
+        const btnW = noBtn.offsetWidth;
+        const btnH = noBtn.offsetHeight;
+        const maxX = Math.max(10, window.innerWidth  - btnW - 20);
+        const maxY = Math.max(10, window.innerHeight - btnH - 20);
+        const randomX = Math.max(10, Math.random() * maxX);
+        const randomY = Math.max(10, Math.random() * maxY);
+
+        noBtn.style.position = 'fixed';
+        noBtn.style.left = randomX + 'px';
+        noBtn.style.top  = randomY + 'px';
+        noBtn.style.zIndex = '1001';
+
+        const scale = Math.min(1 + noClickCount * 0.1, 2.2);
+        yesBtn.style.transform = `scale(${scale})`;
+
+        if (noClickCount >= noResponses.length) {
+          noBtn.style.visibility = 'hidden';
+        }
+      }
+
+      /* ---------- EVET BUTONU ---------- */
+      function handleYesButtonClick() {
+        if (isSuccessState) return;
+        isSuccessState = true;
+
+        mainContent.innerHTML = `
+          <h1 class="success-message">Harika! <span aria-hidden="true">🎉</span></h1>
+          <p class="success-text">Seninle tanışmak için sabırsızlanıyorum!</p>
+        `;
+
+        interestForm.style.display = 'block';
+        startHeartAnimation();
+
+        // Telegram'a "Evet dedi" bildirimi
+        notifyTelegram('evet');
+
+        setTimeout(() => {
+          interestForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+
+        setTimeout(() => {
+          if (typeof confetti === 'function') {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+          }
+        }, 500);
+      }
+
+      /* ---------- KALPLER ---------- */
+      function startHeartAnimation() {
+        heartsContainer.innerHTML = '';
+
+        for (let i = 0; i < totalHearts; i++) {
+          createHeart(i * 200);
+        }
+
+        heartInterval = setInterval(() => {
+          if (document.querySelectorAll('.heart').length < totalHearts) {
+            createHeart(0);
+          }
+        }, 500);
+      }
+
+      function createHeart(delay) {
+        setTimeout(() => {
+          const heart = document.createElement('div');
+          heart.className = 'heart';
+          heart.textContent = heartColors[Math.floor(Math.random() * heartColors.length)];
+          heart.style.left = `${Math.random() * 100}%`;
+          heart.style.animationDuration = `${3 + Math.random() * 3}s`;
+          heart.style.animationDelay = `${Math.random() * 2}s`;
+
+          heartsContainer.appendChild(heart);
+
+          setTimeout(() => heart.remove(), 9000);
+        }, delay);
+      }
+
+      /* ---------- TELEGRAM BİLDİRİMİ (Evet tıklaması) ---------- */
+      function notifyTelegram(tip) {
+        const data = new FormData();
+        data.append('tip', tip);
+        fetch('kaydet.php', { method: 'POST', body: data }).catch(() => {});
+      }
+
+      /* ---------- FORM GÖNDERİMİ ---------- */
+      function handleFormSubmit(e) {
+        e.preventDefault();
+
+        const submitBtn = userForm.querySelector('.submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Gönderiliyor...';
+
+        const formData = new FormData(userForm);
+        formData.append('tip', 'form');
+
+        fetch('kaydet.php', { method: 'POST', body: formData })
+          .then((res) => {
+            if (!res.ok) throw new Error('http_' + res.status);
+            return res.text();
+          })
+          .then((response) => {
+            // Telegram hatası varsa kullanıcıya göster
+            if (response.trim() !== 'ok') {
+              alert("Telegram Hatası: " + response);
+              throw new Error(response);
+            }
+
+            const name    = formData.get('isim');
+            const hobbies = formData.get('hobiler');
+            const color   = formData.get('renkler');
+            const book    = formData.get('kitaplar');
+            const movie   = formData.get('filmler');
+
+            interestForm.innerHTML = `
+              <h2 class="form-title">Teşekkürler ${esc(name)}!</h2>
+              <p>Bilgilerini aldım:</p>
+              <ul class="form-result">
+                <li><strong>Hobilerin:</strong> ${esc(hobbies)}</li>
+                ${color ? `<li><strong>Sevdiğin renk:</strong> ${esc(color)}</li>` : ''}
+                ${book  ? `<li><strong>Sevdiğin kitap:</strong> ${esc(book)}</li>` : ''}
+                ${movie ? `<li><strong>Sevdiğin film:</strong> ${esc(movie)}</li>` : ''}
+              </ul>
+            `;
+
+            for (let i = 0; i < 5; i++) {
+              setTimeout(() => {
+                if (typeof confetti === 'function') {
+                  confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+              }, i * 300);
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Gönder';
+          });
+      }
+
+      /* ---------- CONFETTI CDN ---------- */
+      if (typeof confetti !== 'function') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js';
+        document.head.appendChild(script);
+      }
+
+      window.addEventListener('beforeunload', () => {
+        if (heartInterval) clearInterval(heartInterval);
+      });
+    });
+  </script>
+</body>
+</html>
